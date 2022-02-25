@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 
 	"github.com/dpnetca/gomoma/pkg/meraki"
 	"github.com/dpnetca/gomoma/pkg/meraki/organizations"
-	outfile "github.com/dpnetca/gomoma/pkg/outFile"
+	"github.com/dpnetca/gomoma/pkg/outfile"
 )
 
 func main() {
@@ -19,31 +20,14 @@ func main() {
 		log.Fatalf("error creating dashboard: %v\n", err)
 	}
 
-	orgs, _ := organizations.GetOrganizations(dashboard)
-
-	var adminList [][]string
-	// set csv headers
-	adminList = append(
-		adminList,
-		[]string{
-			"org_id",
-			"org_name",
-			"admin_id",
-			"admin_name",
-			"admin_email",
-			"admin_access",
-		},
-	)
-	for _, org := range orgs {
-		orgAdmins, _ := organizations.GetOrganizationAdmins(dashboard, org.Id)
-		for _, admin := range orgAdmins {
-			l := []string{org.Id, org.Name, admin.Id, admin.Name, admin.Email, admin.OrgAccess}
-			adminList = append(adminList, l)
-		}
-
+	orgs, err := organizations.GetOrganizations(dashboard)
+	if err != nil {
+		log.Fatalf("error getting organizations: %v\n", err)
 	}
 
-	outfile.WriteOutput("listAdmins", adminList)
+	admins := getAdminList(dashboard, orgs)
+
+	outfile.WriteOutput("listAdmins", admins)
 
 }
 
@@ -65,4 +49,43 @@ func handleFlags() string {
 	}
 	return *apiKey
 
+}
+
+func getAdminList(dashboard meraki.Dashboard, orgs []organizations.Organization) [][]string {
+	adminMap := getAdminSyncMap(dashboard, orgs)
+	admins := parseAdminMap(adminMap)
+	return admins
+}
+
+func getAdminSyncMap(dashboard meraki.Dashboard, orgs []organizations.Organization) sync.Map {
+	var adminMap sync.Map
+	wg := sync.WaitGroup{}
+	for i, org := range orgs {
+		wg.Add(1)
+		go func(i int, org organizations.Organization) {
+			admins, err := organizations.GetOrganizationAdmins(dashboard, org.Id)
+			if err != nil {
+				log.Printf("Error getting admins from %v: %v\n", org.Name, err)
+			}
+			var adminList [][]string
+			for _, admin := range admins {
+				l := []string{org.Id, org.Name, admin.Id, admin.Name, admin.Email, admin.OrgAccess}
+				adminList = append(adminList, l)
+			}
+			adminMap.Store(i, adminList)
+			wg.Done()
+		}(i, org)
+
+	}
+	wg.Wait()
+	return adminMap
+}
+
+func parseAdminMap(adminMap sync.Map) [][]string {
+	var admins [][]string
+	adminMap.Range(func(key, value interface{}) bool {
+		admins = append(admins, value.([][]string)...)
+		return true
+	})
+	return admins
 }
