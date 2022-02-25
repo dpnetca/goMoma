@@ -8,10 +8,49 @@ import (
 
 	"github.com/dpnetca/gomoma/pkg/meraki"
 	"github.com/dpnetca/gomoma/pkg/meraki/organizations"
+	outfile "github.com/dpnetca/gomoma/pkg/outFile"
 )
 
 func main() {
+	apiKey := handleFlags()
+
+	dashboard, err := meraki.NewDashboard(apiKey)
+	if err != nil {
+		log.Fatalf("error creating dashboard: %v\n", err)
+	}
+
+	orgs, _ := organizations.GetOrganizations(dashboard)
+
+	var adminList [][]string
+	// set csv headers
+	adminList = append(
+		adminList,
+		[]string{
+			"org_id",
+			"org_name",
+			"admin_id",
+			"admin_name",
+			"admin_email",
+			"admin_access",
+		},
+	)
+	for _, org := range orgs {
+		orgAdmins, _ := organizations.GetOrganizationAdmins(dashboard, org.Id)
+		for _, admin := range orgAdmins {
+			l := []string{org.Id, org.Name, admin.Id, admin.Name, admin.Email, admin.OrgAccess}
+			adminList = append(adminList, l)
+		}
+
+	}
+
+	outfile.WriteOutput("listAdmins", adminList)
+
+}
+
+func handleFlags() string {
 	apiKey := flag.String("key", "", "Meraki API Key")
+	// TODO: add flag for output directory
+	// TODO: add flag for output filename
 
 	flag.Parse()
 
@@ -24,22 +63,6 @@ func main() {
 		fmt.Println("   To pass as an environmental variable set `MERAKI_API_KEY` to your API key")
 		os.Exit(1)
 	}
-
-	dashboard, err := meraki.NewDashboard(*apiKey)
-	if err != nil {
-		log.Fatalf("error creating dashboard: %v\n", err)
-	}
-	// fmt.Printf("Dashboard: %v\n", dashboard)
-
-	orgs, _ := organizations.GetOrganizations(dashboard)
-
-	for _, org := range orgs {
-		orgAdmins, _ := organizations.GetOrganizationAdmins(dashboard, org.Id)
-		for _, admin := range orgAdmins {
-			// TODO not yielding expected results I don't think...
-			fmt.Printf("ORG  %v    admin: %v\n", org.Name, admin.Name)
-		}
-
-	}
+	return *apiKey
 
 }

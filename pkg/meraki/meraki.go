@@ -24,7 +24,7 @@ func NewDashboard(apiKey string) (Dashboard, error) {
 }
 
 func SendRequest(dashboard Dashboard, endpoint string) (string, error) {
-	url := dashboard.BaseURL + "/organizations"
+	url := dashboard.BaseURL + endpoint
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return "", err
