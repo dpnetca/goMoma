@@ -17,13 +17,11 @@ func WriteOutput(filePrefix string, records [][]string) error {
 		return err
 	}
 	defer csvFile.Close()
-	csvWriter := csv.NewWriter(csvFile)
-	for _, record := range records {
-		err := csvWriter.Write(record)
-		if err != nil {
-			return err
-		}
-	}
 
+	csvWriter := csv.NewWriter(csvFile)
+	err = csvWriter.WriteAll(records)
+	if err != nil {
+		return err
+	}
 	return nil
 }

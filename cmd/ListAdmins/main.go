@@ -52,40 +52,34 @@ func handleFlags() string {
 }
 
 func getAdminList(dashboard meraki.Dashboard, orgs []organizations.Organization) [][]string {
-	adminMap := getAdminSyncMap(dashboard, orgs)
-	admins := parseAdminMap(adminMap)
+	admins := getAdminSyncMap(dashboard, orgs)
 	return admins
 }
 
-func getAdminSyncMap(dashboard meraki.Dashboard, orgs []organizations.Organization) sync.Map {
-	var adminMap sync.Map
-	wg := sync.WaitGroup{}
-	for i, org := range orgs {
+func getAdminSyncMap(dashboard meraki.Dashboard, orgs []organizations.Organization) [][]string {
+	var adminList [][]string
+	wg := &sync.WaitGroup{}
+	m := &sync.Mutex{}
+	for _, org := range orgs {
 		wg.Add(1)
-		go func(i int, org organizations.Organization) {
+		go func(org organizations.Organization, wg *sync.WaitGroup, m *sync.Mutex) {
 			admins, err := organizations.GetOrganizationAdmins(dashboard, org.Id)
 			if err != nil {
 				log.Printf("Error getting admins from %v: %v\n", org.Name, err)
 			}
-			var adminList [][]string
+			var al [][]string
 			for _, admin := range admins {
 				l := []string{org.Id, org.Name, admin.Id, admin.Name, admin.Email, admin.OrgAccess}
-				adminList = append(adminList, l)
-			}
-			adminMap.Store(i, adminList)
-			wg.Done()
-		}(i, org)
+				al = append(al, l)
 
+			}
+			m.Lock()
+			adminList = append(adminList, al...)
+			m.Unlock()
+			wg.Done()
+		}(org, wg, m)
 	}
 	wg.Wait()
-	return adminMap
-}
-
-func parseAdminMap(adminMap sync.Map) [][]string {
-	var admins [][]string
-	adminMap.Range(func(key, value interface{}) bool {
-		admins = append(admins, value.([][]string)...)
-		return true
-	})
-	return admins
+	fmt.Printf("%v\n", adminList)
+	return adminList
 }
