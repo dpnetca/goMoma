@@ -1,4 +1,4 @@
-package outfile
+package moma
 
 import (
 	"encoding/csv"
@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func WriteOutput(filePrefix string, records [][]string) error {
+func WriteCsv(filePrefix string, records [][]string) error {
 	// TODO add support for directory path
 
 	// format YYYMMDD-HHMMSS

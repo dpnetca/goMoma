@@ -6,7 +6,6 @@ import (
 	"github.com/dpnetca/gomoma/pkg/meraki"
 	"github.com/dpnetca/gomoma/pkg/meraki/organizations"
 	"github.com/dpnetca/gomoma/pkg/moma"
-	"github.com/dpnetca/gomoma/pkg/outfile"
 )
 
 func main() {
@@ -24,6 +23,6 @@ func main() {
 
 	admins := moma.GetAdminList(dashboard, orgs)
 
-	outfile.WriteOutput("listAdmins", admins)
+	moma.WriteCsv("listAdmins", admins)
 
 }
