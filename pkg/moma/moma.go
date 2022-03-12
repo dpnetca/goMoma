@@ -102,3 +102,20 @@ func WriteCsv(path string, fileName string, records [][]string) error {
 	}
 	return nil
 }
+
+func ReadCsv(file string) ([][]string, error) {
+	adminFile, err := os.Open(file)
+	if err != nil {
+		return [][]string{}, fmt.Errorf("unable to open file %s", err)
+	}
+	defer adminFile.Close()
+
+	r := csv.NewReader(adminFile)
+	r.Comment = '#'
+	records, err := r.ReadAll()
+	if err != nil {
+		return [][]string{}, fmt.Errorf("unable to parse file %s", err)
+	}
+
+	return records, nil
+}

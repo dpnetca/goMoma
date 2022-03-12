@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/dpnetca/gomoma/pkg/meraki"
@@ -22,11 +21,10 @@ func main() {
 		log.Fatalf("error getting organizations: %v\n", err)
 	}
 
-	admins, err := moma.ReadAdminCsv("newAdmins.csv")
+	admins, err := moma.ReadCsv("newAdmins.csv")
 	if err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Println(admins)
 
 	err = moma.AddAdminsToOrgs(dashboard, orgs, admins)
 	if err != nil {
@@ -34,5 +32,6 @@ func main() {
 	}
 	// TODO Add Error Handling
 	// TODO Add output logging
+	// TODO Add concurrency
 
 }
