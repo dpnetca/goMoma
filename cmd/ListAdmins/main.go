@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/dpnetca/gomoma/pkg/meraki"
@@ -9,9 +10,11 @@ import (
 )
 
 func main() {
-	apiKey := moma.HandleFlags()
+	flags := moma.HandleFlags()
 
-	dashboard, err := meraki.NewDashboard(apiKey)
+	fmt.Println(flags)
+
+	dashboard, err := meraki.NewDashboard(flags.ApiKey)
 	if err != nil {
 		log.Fatalf("error creating dashboard: %v\n", err)
 	}
@@ -23,6 +26,11 @@ func main() {
 
 	admins := moma.GetAdminList(dashboard, orgs)
 
-	moma.WriteCsv("listAdmins", admins)
+	fileName := moma.SetFileName(flags.OutputFile, "listAdmins")
+
+	err = moma.WriteCsv(flags.OutputFile.Path, fileName, admins)
+	if err != nil {
+		log.Fatalf("error writing file: %s", err)
+	}
 
 }
