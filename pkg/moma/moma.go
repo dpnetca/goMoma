@@ -18,13 +18,16 @@ type OutputFile struct {
 type Flags struct {
 	ApiKey     string
 	OutputFile OutputFile
+	InputFile  string
 }
 
 func HandleFlags() Flags {
+	// TODO not all flags are used bu all commands...may need to rethink this
 	apiKey := flag.String("key", "", "Meraki API Key")
 	path := flag.String("path", "./output", "output directory")
 	name := flag.String("name", "", "output file name")
 	prefix := flag.String("prefix", "", "output file name prefix")
+	input := flag.String("in", "", "input file name")
 
 	flag.Parse()
 
@@ -49,6 +52,7 @@ func HandleFlags() Flags {
 			Name:   *name,
 			Prefix: *prefix,
 		},
+		InputFile: *input,
 	}
 	return flags
 

@@ -8,7 +8,7 @@ import (
 
 func GetOrganizations(dashboard meraki.Dashboard) ([]Organization, error) {
 	endpoint := "/organizations"
-	data, err := meraki.SendRequest(dashboard, endpoint)
+	data, err := meraki.SendGetRequest(dashboard, endpoint)
 	if err != nil {
 		return []Organization{}, err
 	}
