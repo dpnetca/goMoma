@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/dpnetca/gomoma/pkg/meraki"
@@ -11,8 +10,6 @@ import (
 
 func main() {
 	flags := moma.HandleFlags()
-
-	fmt.Println(flags)
 
 	dashboard, err := meraki.NewDashboard(flags.ApiKey)
 	if err != nil {
