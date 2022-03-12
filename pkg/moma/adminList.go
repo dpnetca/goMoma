@@ -26,7 +26,6 @@ func getAdminListSync(dashboard meraki.Dashboard, orgs []organizations.Organizat
 			}
 			var al [][]string
 			for _, admin := range admins {
-				// l :=
 				al = append(al, []string{org.Id, org.Name, admin.Id, admin.Name, admin.Email, admin.OrgAccess})
 
 			}
