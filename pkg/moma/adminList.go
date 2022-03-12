@@ -9,11 +9,11 @@ import (
 )
 
 func GetAdminList(dashboard meraki.Dashboard, orgs []organizations.Organization) [][]string {
-	admins := getAdminSyncMap(dashboard, orgs)
+	admins := getAdminListSync(dashboard, orgs)
 	return admins
 }
 
-func getAdminSyncMap(dashboard meraki.Dashboard, orgs []organizations.Organization) [][]string {
+func getAdminListSync(dashboard meraki.Dashboard, orgs []organizations.Organization) [][]string {
 	var adminList [][]string
 	wg := &sync.WaitGroup{}
 	m := &sync.Mutex{}
@@ -26,8 +26,8 @@ func getAdminSyncMap(dashboard meraki.Dashboard, orgs []organizations.Organizati
 			}
 			var al [][]string
 			for _, admin := range admins {
-				l := []string{org.Id, org.Name, admin.Id, admin.Name, admin.Email, admin.OrgAccess}
-				al = append(al, l)
+				// l :=
+				al = append(al, []string{org.Id, org.Name, admin.Id, admin.Name, admin.Email, admin.OrgAccess})
 
 			}
 			m.Lock()
