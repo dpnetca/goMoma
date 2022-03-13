@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
+	"strings"
 	"time"
 )
 
@@ -118,4 +120,15 @@ func ReadCsv(file string) ([][]string, error) {
 	}
 
 	return records, nil
+}
+
+func SortSlicesWithHeader(slice [][]string, index int) [][]string {
+	sortedSlice := [][]string{slice[0]}
+	slice = slice[1:]
+	sort.Slice(slice, func(p, q int) bool {
+		return strings.ToLower(slice[p][index]) < strings.ToLower(slice[q][index])
+	})
+	sortedSlice = append(sortedSlice, slice...)
+
+	return sortedSlice
 }

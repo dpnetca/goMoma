@@ -15,6 +15,15 @@ func GetAdminList(dashboard meraki.Dashboard, orgs []organizations.Organization)
 
 func getAdminListSync(dashboard meraki.Dashboard, orgs []organizations.Organization) [][]string {
 	var adminList [][]string
+	adminList = append(adminList, []string{
+		"OrgID",
+		"OrgName",
+		"AdminID",
+		"AdminName",
+		"AdminEmail",
+		"AdminOrgAccess",
+	},
+	)
 	wg := &sync.WaitGroup{}
 	m := &sync.Mutex{}
 	for _, org := range orgs {
@@ -36,5 +45,6 @@ func getAdminListSync(dashboard meraki.Dashboard, orgs []organizations.Organizat
 		}(org, wg, m)
 	}
 	wg.Wait()
-	return adminList
+	sortedAdminList := SortSlicesWithHeader(adminList, 1)
+	return sortedAdminList
 }

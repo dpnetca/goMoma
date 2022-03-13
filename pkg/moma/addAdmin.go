@@ -2,7 +2,6 @@ package moma
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 	"sync"
 
@@ -72,12 +71,13 @@ func AddAdminsToOrgs(
 		}
 	}
 	wg.Wait()
-	sortedSlice := [][]string{addedAdmins[0]}
-	addedAdmins = addedAdmins[1:]
-	sort.Slice(addedAdmins, func(p, q int) bool {
-		return addedAdmins[p][1] < addedAdmins[q][1]
-	})
-	sortedSlice = append(sortedSlice, addedAdmins...)
+	sortedSlice := SortSlicesWithHeader(addedAdmins, 1)
+	// sortedSlice := [][]string{addedAdmins[0]}
+	// addedAdmins = addedAdmins[1:]
+	// sort.Slice(addedAdmins, func(p, q int) bool {
+	// 	return addedAdmins[p][1] < addedAdmins[q][1]
+	// })
+	// sortedSlice = append(sortedSlice, addedAdmins...)
 
 	return sortedSlice, nil
 }
