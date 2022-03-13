@@ -19,10 +19,12 @@ func AddAdminsToOrgs(dashboard meraki.Dashboard, orgs []organizations.Organizati
 			if err != nil {
 				return err
 			}
-			if res == "success" {
-				fmt.Printf("Added org: %s, admin %s\n", org.Name, newAdmin.Name)
+			if res.Success {
+				fmt.Printf("Added org: %s, admin %s, ID: %s\n", org.Name, newAdmin.Name, res.Admin.Id)
 			} else {
-				fmt.Printf("ERROR org: %s, admin %s, %s\n", org.Name, newAdmin.Name, res)
+				for _, errMsg := range res.ErrorMessage {
+					fmt.Printf("ERROR org: %s, admin %s, %s\n", org.Name, newAdmin.Name, errMsg)
+				}
 			}
 		}
 	}

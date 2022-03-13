@@ -2,17 +2,9 @@ package organizations
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/dpnetca/gomoma/pkg/meraki"
 )
-
-type Admin struct {
-	Id        string `json:"id,omitempty"`
-	Name      string `json:"name"`
-	Email     string `json:"email"`
-	OrgAccess string `json:"orgAccess"`
-}
 
 func GetOrganizationAdmins(dashboard meraki.Dashboard, orgId string) ([]Admin, error) {
 	endpoint := "/organizations/" + orgId + "/admins"
@@ -26,22 +18,33 @@ func GetOrganizationAdmins(dashboard meraki.Dashboard, orgId string) ([]Admin, e
 	return admins, nil
 }
 
-func CreateOrganizationAdmin(dashboard meraki.Dashboard, orgId string, admin Admin) (string, error) {
+func CreateOrganizationAdmin(dashboard meraki.Dashboard, orgId string, admin Admin) (AdminResponse, error) {
 	endpoint := "/organizations/" + orgId + "/admins"
+	adminResponse := AdminResponse{Success: false}
+
 	body, err := json.Marshal(admin)
 	if err != nil {
-		return "", err
+		return AdminResponse{}, err
 	}
 	response, err := meraki.SendPostRequest(dashboard, endpoint, body)
 	if err != nil {
-		return "", err
+		return AdminResponse{}, err
 	}
 
 	if response.StatusCode < 200 || response.StatusCode > 299 {
-		var errorMessage map[string]interface{}
-		json.Unmarshal([]byte(response.Data), &errorMessage)
-		return fmt.Sprintf("error %d - %s", response.StatusCode, errorMessage["errors"]), nil
+		err = json.Unmarshal([]byte(response.Data), &adminResponse)
+		if err != nil {
+			return AdminResponse{}, err
+		}
+		return adminResponse, nil
 	}
-	return "success", nil
+
+	err = json.Unmarshal([]byte(response.Data), &adminResponse.Admin)
+	if err != nil {
+		return AdminResponse{}, err
+	}
+
+	adminResponse.Success = true
+	return adminResponse, nil
 
 }
