@@ -32,4 +32,6 @@ func main() {
 		log.Fatalln(err)
 	}
 	fmt.Println(removedAdmins)
+
+	// TODO output to file
 }
