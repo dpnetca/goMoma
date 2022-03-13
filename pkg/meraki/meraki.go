@@ -12,6 +12,11 @@ type Dashboard struct {
 	BaseURL string
 }
 
+type Response struct {
+	StatusCode int
+	Data       string
+}
+
 func NewDashboard(apiKey string) (Dashboard, error) {
 	if apiKey == "" {
 		return Dashboard{}, errors.New("required API key not defined")
@@ -24,46 +29,45 @@ func NewDashboard(apiKey string) (Dashboard, error) {
 	return dashboard, nil
 }
 
-func SendPostRequest(dashboard Dashboard, endpoint string, body []byte) (string, error) {
+func SendPostRequest(dashboard Dashboard, endpoint string, body []byte) (Response, error) {
 	url := dashboard.BaseURL + endpoint
-	data, err := sendRequest(http.MethodPost, url, dashboard.ApiKey, bytes.NewBuffer(body))
+	response, err := sendRequest(http.MethodPost, url, dashboard.ApiKey, bytes.NewBuffer(body))
 	if err != nil {
-		return "", err
+		return Response{}, err
 	}
-	return data, nil
+	return response, nil
 }
 
-func SendGetRequest(dashboard Dashboard, endpoint string) (string, error) {
+func SendGetRequest(dashboard Dashboard, endpoint string) (Response, error) {
 	url := dashboard.BaseURL + endpoint
-	data, err := sendRequest(http.MethodGet, url, dashboard.ApiKey, nil)
+	response, err := sendRequest(http.MethodGet, url, dashboard.ApiKey, nil)
 	if err != nil {
-		return "", err
+		return Response{}, err
 	}
-	return data, nil
+	return response, nil
 }
 
-func sendRequest(method, url, apiKey string, body io.Reader) (string, error) {
+func sendRequest(method, url, apiKey string, body io.Reader) (Response, error) {
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
-		return "", err
+		return Response{}, err
 	}
 	req.Header.Add("X-Cisco-Meraki-API-Key", apiKey)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 	client := http.Client{}
-	response, err := client.Do(req)
+	res, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return Response{}, err
 	}
-	defer response.Body.Close()
+	defer res.Body.Close()
 
-	data, _ := io.ReadAll(response.Body)
+	data, _ := io.ReadAll(res.Body)
+	response := Response{
+		StatusCode: res.StatusCode,
+		Data:       string(data),
+	}
 
-	// this is a breaking change, needs more thought...
-	// if response.StatusCode < 200 || response.StatusCode > 299 {
-	// 	return "", fmt.Errorf("request failed %s", data)
-	// }
-
-	return string(data), nil
+	return response, nil
 
 }

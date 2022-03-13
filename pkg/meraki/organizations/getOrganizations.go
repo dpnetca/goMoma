@@ -8,12 +8,12 @@ import (
 
 func GetOrganizations(dashboard meraki.Dashboard) ([]Organization, error) {
 	endpoint := "/organizations"
-	data, err := meraki.SendGetRequest(dashboard, endpoint)
+	response, err := meraki.SendGetRequest(dashboard, endpoint)
 	if err != nil {
 		return []Organization{}, err
 	}
 	var organizations []Organization
-	json.Unmarshal([]byte(data), &organizations)
+	json.Unmarshal([]byte(response.Data), &organizations)
 
 	return organizations, nil
 

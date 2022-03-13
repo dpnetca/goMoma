@@ -30,7 +30,7 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	// TODO Add Error Handling
+	// TODO Better Error Handling
 	// TODO Add output logging
 	// TODO Add concurrency
 

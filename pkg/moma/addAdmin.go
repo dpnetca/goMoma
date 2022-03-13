@@ -1,6 +1,8 @@
 package moma
 
 import (
+	"fmt"
+
 	"github.com/dpnetca/gomoma/pkg/meraki"
 	"github.com/dpnetca/gomoma/pkg/meraki/organizations"
 )
@@ -13,9 +15,14 @@ func AddAdminsToOrgs(dashboard meraki.Dashboard, orgs []organizations.Organizati
 				Email:     admin[1],
 				OrgAccess: admin[2],
 			}
-			err := organizations.CreateOrganizationAdmin(dashboard, org.Id, newAdmin)
+			res, err := organizations.CreateOrganizationAdmin(dashboard, org.Id, newAdmin)
 			if err != nil {
 				return err
+			}
+			if res == "success" {
+				fmt.Printf("Added org: %s, admin %s\n", org.Name, newAdmin.Name)
+			} else {
+				fmt.Printf("ERROR org: %s, admin %s, %s\n", org.Name, newAdmin.Name, res)
 			}
 		}
 	}
