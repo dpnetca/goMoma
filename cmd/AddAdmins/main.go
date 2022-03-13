@@ -36,7 +36,4 @@ func main() {
 	if err != nil {
 		log.Fatalf("error writing file: %s", err)
 	}
-
-	// TODO Add concurrency
-
 }

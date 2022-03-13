@@ -1,6 +1,11 @@
 package moma
 
 import (
+	"fmt"
+	"sort"
+	"strings"
+	"sync"
+
 	"github.com/dpnetca/gomoma/pkg/meraki"
 	"github.com/dpnetca/gomoma/pkg/meraki/organizations"
 )
@@ -19,41 +24,60 @@ func AddAdminsToOrgs(
 		"ErrorMessage",
 	},
 	)
+	wg := &sync.WaitGroup{}
+	m := &sync.Mutex{}
+
 	for _, org := range orgs {
 		for _, admin := range admins {
-			newAdmin := organizations.Admin{
-				Name:      admin[0],
-				Email:     admin[1],
-				OrgAccess: admin[2],
-			}
-			res, err := organizations.CreateOrganizationAdmin(dashboard, org.Id, newAdmin)
-			if err != nil {
-				return [][]string{}, err
-			}
-			if res.Success {
+			wg.Add(1)
+			go func(org organizations.Organization, admin []string, wg *sync.WaitGroup, m *sync.Mutex) {
+				defer wg.Done()
+				newAdmin := organizations.Admin{
+					Name:      admin[0],
+					Email:     admin[1],
+					OrgAccess: admin[2],
+				}
+				res, err := organizations.CreateOrganizationAdmin(dashboard, org.Id, newAdmin)
+				if err != nil {
+					fmt.Printf("error creating admin %s in %s: %s", newAdmin.Name, org.Name, err)
+					// return [][]string{}, err
+				}
+				// if res.Success {
+				// 	adminId := res.Admin.Id
+				// 	adminName := res.Admin.Name
+				// 	adminEmail := res.Admin.Email
+				// 	errMsg := ""
+
+				// } else {
+
+				// 	adminId := res.Admin.Id
+				// 	adminName := res.Admin.Name
+				// 	adminEmail := res.Admin.Email
+				// 	errMsg := res.ErrorMessage)
+
+				// }
+				m.Lock()
 				addedAdmins = append(addedAdmins, []string{
 					org.Id,
 					org.Name,
 					res.Admin.Id,
-					res.Admin.Name,
-					res.Admin.Email,
-					"",
+					newAdmin.Name,
+					newAdmin.Email,
+					strings.Join(res.ErrorMessage, ", "),
 				},
 				)
-			} else {
-				for _, errMsg := range res.ErrorMessage {
-					addedAdmins = append(addedAdmins, []string{
-						org.Id,
-						org.Name,
-						"",
-						newAdmin.Name,
-						newAdmin.Email,
-						errMsg,
-					},
-					)
-				}
-			}
+				m.Unlock()
+
+			}(org, admin, wg, m)
 		}
 	}
-	return addedAdmins, nil
+	wg.Wait()
+	sortedSlice := [][]string{addedAdmins[0]}
+	addedAdmins = addedAdmins[1:]
+	sort.Slice(addedAdmins, func(p, q int) bool {
+		return addedAdmins[p][1] < addedAdmins[q][1]
+	})
+	sortedSlice = append(sortedSlice, addedAdmins...)
+
+	return sortedSlice, nil
 }
