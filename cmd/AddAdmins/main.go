@@ -26,10 +26,17 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	err = moma.AddAdminsToOrgs(dashboard, orgs, admins)
+	addedAdmins, err := moma.AddAdminsToOrgs(dashboard, orgs, admins)
 	if err != nil {
 		log.Fatalln(err)
 	}
+	fileName := moma.SetFileName(flags.OutputFile, "addAdmins")
+
+	err = moma.WriteCsv(flags.OutputFile.Path, fileName, addedAdmins)
+	if err != nil {
+		log.Fatalf("error writing file: %s", err)
+	}
+
 	// TODO Add output logging
 	// TODO Add concurrency
 

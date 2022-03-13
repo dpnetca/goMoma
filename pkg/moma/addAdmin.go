@@ -1,13 +1,24 @@
 package moma
 
 import (
-	"fmt"
-
 	"github.com/dpnetca/gomoma/pkg/meraki"
 	"github.com/dpnetca/gomoma/pkg/meraki/organizations"
 )
 
-func AddAdminsToOrgs(dashboard meraki.Dashboard, orgs []organizations.Organization, admins [][]string) error {
+func AddAdminsToOrgs(
+	dashboard meraki.Dashboard, orgs []organizations.Organization, admins [][]string,
+) ([][]string, error) {
+
+	var addedAdmins [][]string
+	addedAdmins = append(addedAdmins, []string{
+		"OrgID",
+		"OrgName",
+		"AdminID",
+		"AdminName",
+		"AdminEmail",
+		"ErrorMessage",
+	},
+	)
 	for _, org := range orgs {
 		for _, admin := range admins {
 			newAdmin := organizations.Admin{
@@ -17,16 +28,32 @@ func AddAdminsToOrgs(dashboard meraki.Dashboard, orgs []organizations.Organizati
 			}
 			res, err := organizations.CreateOrganizationAdmin(dashboard, org.Id, newAdmin)
 			if err != nil {
-				return err
+				return [][]string{}, err
 			}
 			if res.Success {
-				fmt.Printf("Added org: %s, admin %s, ID: %s\n", org.Name, newAdmin.Name, res.Admin.Id)
+				addedAdmins = append(addedAdmins, []string{
+					org.Id,
+					org.Name,
+					res.Admin.Id,
+					res.Admin.Name,
+					res.Admin.Email,
+					"",
+				},
+				)
 			} else {
 				for _, errMsg := range res.ErrorMessage {
-					fmt.Printf("ERROR org: %s, admin %s, %s\n", org.Name, newAdmin.Name, errMsg)
+					addedAdmins = append(addedAdmins, []string{
+						org.Id,
+						org.Name,
+						"",
+						newAdmin.Name,
+						newAdmin.Email,
+						errMsg,
+					},
+					)
 				}
 			}
 		}
 	}
-	return nil
+	return addedAdmins, nil
 }
