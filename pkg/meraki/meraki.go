@@ -47,6 +47,15 @@ func SendGetRequest(dashboard Dashboard, endpoint string) (Response, error) {
 	return response, nil
 }
 
+func SendDeleteRequest(dashboard Dashboard, endpoint string) (Response, error) {
+	url := dashboard.BaseURL + endpoint
+	response, err := sendRequest(http.MethodDelete, url, dashboard.ApiKey, nil)
+	if err != nil {
+		return Response{}, err
+	}
+	return response, nil
+}
+
 func sendRequest(method, url, apiKey string, body io.Reader) (Response, error) {
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {

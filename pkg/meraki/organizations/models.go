@@ -28,3 +28,9 @@ type AdminResponse struct {
 	ErrorMessage []string `json:"errors"`
 	Admin        Admin
 }
+
+type DeleteAdminResponse struct {
+	Success      bool
+	StatusCode   int
+	ErrorMessage []string `json:"errors"`
+}

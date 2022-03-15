@@ -48,3 +48,24 @@ func CreateOrganizationAdmin(dashboard meraki.Dashboard, orgId string, admin Adm
 	return adminResponse, nil
 
 }
+
+func DeleteOrganizationAdmin(dashboard meraki.Dashboard, orgId string, adminID string) (DeleteAdminResponse, error) {
+	endpoint := "/organizations/" + orgId + "/admins/" + adminID
+	response := DeleteAdminResponse{Success: false}
+
+	res, err := meraki.SendDeleteRequest(dashboard, endpoint)
+	if err != nil {
+		return DeleteAdminResponse{}, err
+	}
+	response.StatusCode = res.StatusCode
+
+	if res.StatusCode < 200 || res.StatusCode > 299 {
+		err = json.Unmarshal([]byte(res.Data), &response)
+		if err != nil {
+			return DeleteAdminResponse{}, err
+		}
+		return response, nil
+	}
+	response.Success = true
+	return response, nil
+}
