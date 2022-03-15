@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/dpnetca/gomoma/pkg/meraki"
@@ -31,7 +30,12 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Println(removedAdmins)
 
-	// TODO output to file
+	fileName := moma.SetFileName(flags.OutputFile, "removedAdmins")
+
+	err = moma.WriteCsv(flags.OutputFile.Path, fileName, removedAdmins)
+	if err != nil {
+		log.Fatalf("error writing file: %s", err)
+	}
+
 }

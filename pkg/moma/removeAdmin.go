@@ -16,7 +16,9 @@ func RemoveAdminsFromOrgs(
 	removedAdmins = append(removedAdmins, []string{
 		"OrgID",
 		"OrgName",
+		"AdminId",
 		"AdminName",
+		"AdminEmail",
 		"ErrorMessage",
 	},
 	)
@@ -24,24 +26,40 @@ func RemoveAdminsFromOrgs(
 	m := &sync.Mutex{}
 
 	for _, org := range orgs {
-		// TODO Get Admins for Org
+		adminList, err := organizations.GetOrganizationAdmins(dashboard, org.Id)
+		if err != nil {
+			fmt.Printf("error getting admins from %s\n", org.Name)
+		}
 		for _, admin := range admins {
-			// TODO check if admin  email in admin list, get admin ID and continue if not exit loop
+			var removeAdmin organizations.Admin
+			for _, existingAdmin := range adminList {
+				if existingAdmin.Email == admin[0] {
+					removeAdmin = existingAdmin
+					break
+				}
+			}
+			if removeAdmin.Id == "" {
+				continue
+			}
+
 			wg.Add(1)
-			go func(org organizations.Organization, admin []string, wg *sync.WaitGroup, m *sync.Mutex) {
+			go func(org organizations.Organization, removeAdmin organizations.Admin, wg *sync.WaitGroup, m *sync.Mutex) {
 				defer wg.Done()
-				res, err := organizations.DeleteOrganizationAdmin(dashboard, org.Id, admin[0])
+				res, err := organizations.DeleteOrganizationAdmin(dashboard, org.Id, removeAdmin.Id)
 				if err != nil {
-					fmt.Printf("error deleting admin %s from %s: %s", admin[0], org.Name, err)
+					fmt.Printf("error deleting admin %s from %s: %s", removeAdmin, org.Name, err)
 				}
 				m.Lock()
 				removedAdmins = append(removedAdmins, []string{
 					org.Id,
 					org.Name,
-					admin[0],
+					removeAdmin.Id,
+					removeAdmin.Name,
+					removeAdmin.Email,
 					strings.Join(res.ErrorMessage, ", "),
 				})
-			}(org, admin, wg, m)
+				m.Unlock()
+			}(org, removeAdmin, wg, m)
 		}
 	}
 	wg.Wait()
